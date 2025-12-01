@@ -31,4 +31,6 @@ const Users = sequelize.define(
     timestamps: true,
   }
 );
+User.hasMany(Task, { foreignKey: "id", onDelete: "CASCADE" });
+Task.belongsTo(User, { foreignKey: "id" });
 export default Users;
