@@ -40,9 +40,9 @@ export default function Index() {
       setTimeout(async () => {
         if (alreadyLaunched === null) {
           await AsyncStorage.setItem("alreadyLaunched", "true");
-          router.replace("onboarding/index");
+          router.replace("(auth)/signup");
         } else {
-          router.replace("onboarding/last");
+          router.replace("(auth)/signup");
         }
       }, 1500);
     };

@@ -7,6 +7,7 @@ export default function Layout() {
       <Stack.Screen name="(auth)/signup" />
       <Stack.Screen name="onboarding/index" />
       <Stack.Screen name="onboarding/last" />
+      <Stack.Screen name="home" />
     </Stack>
   );
 }
