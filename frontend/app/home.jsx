@@ -8,6 +8,9 @@ export default function Home() {
         <Text style={styles.satusText}>En attente</Text>
         <Text style={styles.satusText}>Termines</Text>
       </View>
+      <View>
+        <View></View>
+      </View>
     </SafeAreaView>
   );
 }

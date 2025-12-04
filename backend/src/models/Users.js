@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
-
+import Tasks from "./Tasks.js";
 const Users = sequelize.define(
   "Users",
   {
@@ -10,7 +10,7 @@ const Users = sequelize.define(
       autoIncrement: true,
     },
 
-    name: {
+    username: {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
@@ -31,6 +31,6 @@ const Users = sequelize.define(
     timestamps: true,
   }
 );
-User.hasMany(Task, { foreignKey: "id", onDelete: "CASCADE" });
-Task.belongsTo(User, { foreignKey: "id" });
+Users.hasMany(Tasks, { foreignKey: "id", onDelete: "CASCADE" });
+Tasks.belongsTo(Users, { foreignKey: "id" });
 export default Users;
