@@ -1,5 +1,5 @@
 import { View, Text } from "react-native";
-export default function OnboardingScreen() {
+export default function index() {
   return (
     <View>
       <Text>index</Text>

@@ -34,11 +34,8 @@ const useTasks = () => {
     try {
       setLoading(true);
       setError(null);
-
       const response = await api.post("/tasks", taskData);
-
       setTasks((prevTasks) => [response.data.data, ...prevTasks]);
-
       return { success: true, data: response.data.data };
     } catch (err) {
       const errorMessage =
@@ -63,13 +60,11 @@ const useTasks = () => {
           task.id === taskId ? response.data.data : task
         )
       );
-
       return { success: true, data: response.data.data };
     } catch (err) {
       const errorMessage =
         err.response?.data?.message || "Wrong in refresh task";
       setError(errorMessage);
-
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
@@ -149,7 +144,6 @@ const useTasks = () => {
   };
 
   return {
-    //
     tasks,
     loading,
     error,
@@ -160,7 +154,6 @@ const useTasks = () => {
     updateTask,
     deleteTask,
     markAsDone,
-
     onRefresh,
     getTasksByStatus,
     getStats,

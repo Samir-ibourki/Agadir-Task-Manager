@@ -36,7 +36,7 @@ const getTask = async (req, res) => {
   try {
     const tasks = await Tasks.findAll({
       where: { user_id: req.user.id },
-      order: [["created_at", "DESC"]],
+      order: [["createdAt", "DESC"]],
     });
     res.status(200).json({
       success: true,

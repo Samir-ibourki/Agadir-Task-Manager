@@ -24,7 +24,7 @@ export default function LoginScreen() {
     const result = await login(email, password);
 
     if (result.success) {
-      router.push("home");
+      router.push("dashboard");
     } else {
       Alert.alert("Erreur", result.error);
     }
