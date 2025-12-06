@@ -8,6 +8,7 @@ export default function Layout() {
       <Stack.Screen name="onboarding/index" />
       <Stack.Screen name="onboarding/last" />
       <Stack.Screen name="home" />
+      <Stack.Screen name="add-task" />
     </Stack>
   );
 }

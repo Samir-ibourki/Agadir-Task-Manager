@@ -122,4 +122,30 @@ const deleteTask = async (req, res) => {
     });
   }
 };
-export { createtask, getTask, updateTask, deleteTask };
+const markAsDone = async (req, res, next) => {
+  try {
+    const task = await Tasks.findOne({
+      where: {
+        id: req.params.id,
+        user_id: req.user.id,
+      },
+    });
+
+    if (!task) {
+      const error = new Error("Tâche non trouvée ou non autorisée.");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    await task.update({ status: "done" });
+
+    res.status(200).json({
+      success: true,
+      message: "Tâche marquée comme terminée.",
+      data: task,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+export { createtask, getTask, updateTask, deleteTask, markAsDone };

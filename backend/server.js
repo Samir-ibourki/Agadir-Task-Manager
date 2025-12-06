@@ -10,6 +10,15 @@ import "./src/models/Users.js";
 import "./src/models/Tasks.js";
 app.use("/auth", authRoutes);
 app.use("/tasks", taskRoutes);
+app.use((err, req, res, next) => {
+  const statusCode = err.statusCode || 500;
+  const message = err.message || "Erreur interne du serveur.";
+
+  res.status(statusCode).json({
+    success: false,
+    message: message,
+  });
+});
 sequelize
   .sync({ alter: true })
   .then(() => {

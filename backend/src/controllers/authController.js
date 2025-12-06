@@ -1,6 +1,6 @@
 import JWT from "jsonwebtoken";
 import Users from "../models/Users.js";
-import { Op } from "sequelize";
+
 import bcrypt from "bcryptjs";
 
 const generateToken = (userId) => {
@@ -27,14 +27,12 @@ const register = async (req, res, next) => {
     }
 
     const existingUser = await Users.findOne({
-      where: {
-        [Op.or]: [{ email }, { username }],
-      },
+      where: { email },
     });
 
     if (existingUser) {
       const error = new Error(
-        "cet email ou nom d'utilisateur est deja utilise"
+        "cet email ou username d'utilisateur est deja utilise"
       );
       error.statusCode = 409;
       throw error;

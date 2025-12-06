@@ -6,13 +6,29 @@ import {
   TextInput,
   TouchableOpacity,
   Platform,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import COLORS from "../../themes/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import useAuth from "../../hooks/useAuth";
+import { useState } from "react";
 
 export default function LoginScreen() {
+  const { login, loading, error } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const handleLogin = async () => {
+    const result = await login(email, password);
+
+    if (result.success) {
+      router.push("home");
+    } else {
+      Alert.alert("Erreur", result.error);
+    }
+  };
   return (
     <SafeAreaView>
       {/* Header */}
@@ -42,6 +58,8 @@ export default function LoginScreen() {
                 placeholderTextColor="#999"
                 keyboardType="email-address"
                 autoCapitalize="none"
+                value={email}
+                onChangeText={setEmail}
               />
             </View>
           </View>
@@ -55,26 +73,36 @@ export default function LoginScreen() {
               />
               <TextInput
                 style={styles.input}
-                placeholder="Enter your email"
+                placeholder="Enter your password"
                 placeholderTextColor="#999"
-                keyboardType="email-address"
                 autoCapitalize="none"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
               />
-              <TouchableOpacity style={styles.eye}>
-                <Ionicons name="eye-outline" size={20} color="#999" />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eye}
+              >
+                <Ionicons
+                  name={showPassword ? "eye" : "eye-off"}
+                  size={20}
+                  color="#999"
+                />
               </TouchableOpacity>
             </View>
           </View>
 
           <TouchableOpacity
-            onPress={() => router.push("home")}
+            onPress={handleLogin}
+            disabled={loading}
             style={styles.loginButton}
             activeOpacity={0.8}
           >
             <Text style={styles.loginButtonText}>Log In</Text>
             <Ionicons name="arrow-forward" size={20} color="#fff" />
           </TouchableOpacity>
-
+          {error && <Text style={{ color: "red" }}>{error}</Text>}
           {/* Divider */}
           <View style={styles.divider}>
             <View style={styles.dividerLine} />
@@ -83,7 +111,11 @@ export default function LoginScreen() {
           </View>
 
           {/* Sign Up Link */}
-          <TouchableOpacity style={styles.signUpButton} activeOpacity={0.8}>
+          <TouchableOpacity
+            onPress={() => router.navigate("(auth)/signup")}
+            style={styles.signUpButton}
+            activeOpacity={0.8}
+          >
             <Text style={styles.signUpButtonText}>Create New Account</Text>
           </TouchableOpacity>
 
