@@ -1,0 +1,659 @@
+openapi: 3.1.0
+info:
+  title: Agadir Task Manager API
+  description: |
+    API REST pour la gestion des tâches personnelles des citoyens et étudiants d'Agadir.
+
+    ## Fonctionnalités
+    - 🔐 Authentification JWT
+    - 📝 Gestion complète des tâches (CRUD)
+    - 🇲🇦 Contexte marocain (CNSS, Moukawalati, RAMED, etc.)
+
+    ## Sécurité
+    - Mots de passe hashés avec Bcrypt
+    - JWT Token pour protéger les routes
+    - Validation des données
+
+    ## Base URL
+    - **Développement:** `http://localhost:5000/api`
+    - **Production:** `https://api.agadirtasks.ma/api`
+  version: 1.0.0
+  contact:
+    name: Équipe Agadir Task Manager
+    email: contact@agadirtasks.ma
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:5000/api
+    description: Serveur de développement
+  - url: https://api.agadirtasks.ma/api
+    description: Serveur de production
+
+tags:
+  - name: Authentication
+    description: Endpoints d'authentification (inscription, connexion)
+  - name: Tasks
+    description: Endpoints de gestion des tâches (CRUD)
+
+# ==========================================
+# SCHÉMAS (MODELS)
+# ==========================================
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token JWT obtenu après connexion
+
+  schemas:
+    # Schéma User
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        username:
+          type: string
+          example: "Mohammed Alaoui"
+        email:
+          type: string
+          format: email
+          example: "mohammed@agadir.ma"
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-12-07T10:30:00Z"
+      required:
+        - id
+        - username
+        - email
+
+    # Schéma Task
+    Task:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          minLength: 3
+          maxLength: 200
+          example: "RDV Moukawalati - Enregistrement entreprise"
+        description:
+          type: string
+          nullable: true
+          example: "Apporter les documents nécessaires : CIN, justificatif de domicile"
+        status:
+          type: string
+          enum: [pending, done]
+          example: "pending"
+        due_date:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-12-15"
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-12-07T10:30:00Z"
+      required:
+        - id
+        - user_id
+        - title
+        - status
+
+    # Requête d'inscription
+    RegisterRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 2
+          maxLength: 100
+          example: "Mohammed Alaoui"
+        email:
+          type: string
+          format: email
+          example: "mohammed@agadir.ma"
+        password:
+          type: string
+          minLength: 6
+          maxLength: 100
+          example: "motdepasse123"
+      required:
+        - username
+        - email
+        - password
+
+    # Requête de connexion
+    LoginRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: "mohammed@agadir.ma"
+        password:
+          type: string
+          example: "motdepasse123"
+      required:
+        - email
+        - password
+
+    # Réponse d'authentification
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Connexion réussie"
+        data:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 1
+            username:
+              type: string
+              example: "Mohammed Alaoui"
+            email:
+              type: string
+              example: "mohammed@agadir.ma"
+            token:
+              type: string
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    # Requête de création de tâche
+    CreateTaskRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 200
+          example: "Télé-déclaration CNSS"
+        description:
+          type: string
+          nullable: true
+          example: "Déclaration du mois de novembre"
+        due_date:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-12-20"
+      required:
+        - title
+
+    # Requête de mise à jour de tâche
+    UpdateTaskRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 3
+          maxLength: 200
+          example: "Télé-déclaration CNSS - Décembre"
+        description:
+          type: string
+          nullable: true
+          example: "Déclaration mise à jour"
+        status:
+          type: string
+          enum: [pending, done]
+          example: "done"
+        due_date:
+          type: string
+          format: date
+          nullable: true
+          example: "2025-12-25"
+
+    # Réponse de tâche unique
+    TaskResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Tâche créée avec succès"
+        data:
+          $ref: "#/components/schemas/Task"
+
+    # Réponse de liste de tâches
+    TasksListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        count:
+          type: integer
+          example: 5
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Task"
+
+    # Réponse d'erreur
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: "Email ou mot de passe incorrect"
+        error:
+          type: string
+          example: "Unauthorized"
+
+# ==========================================
+# ENDPOINTS
+# ==========================================
+paths:
+  # ==========================================
+  # AUTHENTICATION
+  # ==========================================
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Inscription d'un nouvel utilisateur
+      description: |
+        Crée un nouveau compte utilisateur.
+
+        **Validations:**
+        - Username: minimum 2 caractères
+        - Email: format valide et unique
+        - Mot de passe: minimum 6 caractères (hashé avec Bcrypt)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+            examples:
+              exemple1:
+                summary: Utilisateur standard
+                value:
+                  username: "Fatima Zahra"
+                  email: "fatima@agadir.ma"
+                  password: "motdepasse123"
+              exemple2:
+                summary: Étudiant OFPPT
+                value:
+                  username: "Youssef Benjelloun"
+                  email: "youssef.b@ofppt.ma"
+                  password: "ofppt2025"
+      responses:
+        "201":
+          description: Inscription réussie
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+              example:
+                success: true
+                message: "Inscription réussie"
+                data:
+                  id: 1
+                  username: "Fatima Zahra"
+                  email: "fatima@agadir.ma"
+                  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        "400":
+          description: Données invalides ou email déjà utilisé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: "L'email est déjà enregistré"
+        "500":
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Connexion d'un utilisateur
+      description: |
+        Authentifie un utilisateur et retourne un JWT Token valide 30 jours.
+
+        **Le token doit être inclus dans les requêtes protégées:**
+        ```
+        Authorization: Bearer <token>
+        ```
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+            example:
+              email: "fatima@agadir.ma"
+              password: "motdepasse123"
+      responses:
+        "200":
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "401":
+          description: Email ou mot de passe incorrect
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: "Email ou mot de passe incorrect"
+        "500":
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/me:
+    get:
+      tags:
+        - Authentication
+      summary: Obtenir les informations de l'utilisateur connecté
+      description: Retourne les informations du profil utilisateur basées sur le JWT Token
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Informations utilisateur
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: "#/components/schemas/User"
+        "401":
+          description: Token invalide ou expiré
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: "Token invalide ou expiré"
+
+  # ==========================================
+  # TASKS
+  # ==========================================
+  /tasks:
+    get:
+      tags:
+        - Tasks
+      summary: Récupérer toutes les tâches de l'utilisateur
+      description: |
+        Retourne la liste complète des tâches de l'utilisateur connecté, triées par date de création (les plus récentes en premier).
+
+        **Exemples de tâches marocaines:**
+        - RDV Moukawalati
+        - Télé-déclaration CNSS
+        - Dépôt documents commune
+        - Préparation examen BTS/OFPPT
+        - Rappel RAMED/AMO
+      security:
+        - BearerAuth: []
+      responses:
+        "200":
+          description: Liste des tâches
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TasksListResponse"
+              example:
+                success: true
+                count: 3
+                data:
+                  - id: 1
+                    user_id: 1
+                    title: "RDV Moukawalati"
+                    description: "Enregistrement auto-entrepreneur"
+                    status: "pending"
+                    due_date: "2025-12-15"
+                    created_at: "2025-12-07T10:00:00Z"
+                  - id: 2
+                    user_id: 1
+                    title: "CNSS - Déclaration novembre"
+                    description: null
+                    status: "done"
+                    due_date: "2025-12-10"
+                    created_at: "2025-12-06T14:30:00Z"
+                  - id: 3
+                    user_id: 1
+                    title: "Renouvellement RAMED"
+                    description: "Apporter justificatifs de revenus"
+                    status: "pending"
+                    due_date: "2025-12-20"
+                    created_at: "2025-12-05T09:15:00Z"
+        "401":
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Erreur serveur
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    post:
+      tags:
+        - Tasks
+      summary: Créer une nouvelle tâche
+      description: |
+        Crée une nouvelle tâche pour l'utilisateur connecté.
+
+        **Champs obligatoires:** title
+
+        **Champs optionnels:** description, due_date
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTaskRequest"
+            examples:
+              tache_simple:
+                summary: Tâche simple
+                value:
+                  title: "Acheter des fournitures"
+                  description: "Pour les cours"
+                  due_date: "2025-12-10"
+              rdv_moukawalati:
+                summary: RDV Moukawalati
+                value:
+                  title: "RDV Moukawalati"
+                  description: "Enregistrement de l'auto-entreprise"
+                  due_date: "2025-12-15"
+              cnss:
+                summary: Télé-déclaration CNSS
+                value:
+                  title: "Télé-déclaration CNSS"
+                  description: "Déclaration mensuelle"
+                  due_date: null
+      responses:
+        "201":
+          description: Tâche créée avec succès
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskResponse"
+        "400":
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /tasks/{id}:
+    put:
+      tags:
+        - Tasks
+      summary: Mettre à jour une tâche
+      description: Modifie une tâche existante. L'utilisateur ne peut modifier que ses propres tâches.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de la tâche
+          schema:
+            type: integer
+            example: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTaskRequest"
+            example:
+              title: "RDV Moukawalati - Reporté"
+              description: "Nouveau rendez-vous fixé"
+              status: "pending"
+              due_date: "2025-12-20"
+      responses:
+        "200":
+          description: Tâche mise à jour
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskResponse"
+        "400":
+          description: Données invalides
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Tâche non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                success: false
+                message: "Tâche non trouvée"
+
+    delete:
+      tags:
+        - Tasks
+      summary: Supprimer une tâche
+      description: Supprime définitivement une tâche. L'utilisateur ne peut supprimer que ses propres tâches.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de la tâche à supprimer
+          schema:
+            type: integer
+            example: 1
+      responses:
+        "200":
+          description: Tâche supprimée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Tâche supprimée avec succès"
+        "404":
+          description: Tâche non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /tasks/{id}/done:
+    patch:
+      tags:
+        - Tasks
+      summary: Marquer une tâche comme terminée
+      description: Change le statut d'une tâche à "done"
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de la tâche
+          schema:
+            type: integer
+            example: 1
+      responses:
+        "200":
+          description: Tâche marquée comme terminée
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TaskResponse"
+              example:
+                success: true
+                message: "Tâche marquée comme terminée"
+                data:
+                  id: 1
+                  user_id: 1
+                  title: "RDV Moukawalati"
+                  description: "Enregistrement auto-entrepreneur"
+                  status: "done"
+                  due_date: "2025-12-15"
+                  created_at: "2025-12-07T10:00:00Z"
+        "404":
+          description: Tâche non trouvée
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"

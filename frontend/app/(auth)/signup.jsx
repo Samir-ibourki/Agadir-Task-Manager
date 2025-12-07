@@ -68,26 +68,18 @@ const RegisterScreen = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // ==========================================
-  // Fonction d'inscription
-  // ==========================================
   const handleRegister = async () => {
-    // Réinitialiser les erreurs
     setErrors({});
-
-    // Valider le formulaire
     if (!validateForm()) {
       return;
     }
 
-    // Appeler le hook
     const result = await register(
       username.trim(),
       email.trim().toLowerCase(),
       password
     );
 
-    // Traiter le résultat
     if (result.success) {
       Alert.alert(
         "✅ Inscription réussie",
@@ -95,7 +87,7 @@ const RegisterScreen = () => {
         [
           {
             text: "OK",
-            onPress: () => router.replace("home"),
+            onPress: () => router.replace("(auth)/login"),
           },
         ]
       );
@@ -104,9 +96,6 @@ const RegisterScreen = () => {
     }
   };
 
-  // ==========================================
-  // Fonction pour effacer l'erreur d'un champ
-  // ==========================================
   const clearFieldError = (fieldName) => {
     if (errors[fieldName]) {
       setErrors((prev) => {
@@ -117,9 +106,6 @@ const RegisterScreen = () => {
     }
   };
 
-  // ==========================================
-  // Vérification si l'inscription est possible
-  // ==========================================
   const canRegister =
     username && email && password && confirmPassword && !loading;
 
@@ -138,7 +124,7 @@ const RegisterScreen = () => {
         >
           {/* En-tête */}
           <View style={styles.header}>
-            <Text style={styles.emoji}>✨</Text>
+            <Text style={styles.emoji}>🌐</Text>
             <Text style={styles.title}>Créer un compte</Text>
             <Text style={styles.subtitle}>Rejoignez Agadir Task Manager</Text>
           </View>

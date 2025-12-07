@@ -243,7 +243,7 @@ const DashboardScreen = () => {
       <View style={styles.header}>
         <View>
           <Text style={styles.greeting}>Bonjour,</Text>
-          <Text style={styles.username}>{user?.name || "Utilisateur"} 👋</Text>
+          <Text style={styles.username}>Mes taches</Text>
         </View>
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
           <Ionicons name="log-out-outline" size={24} color="#FFFFFF" />
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     color: "#FFFFFF",
-    marginTop: 4,
+    marginVertical: 8,
   },
   logoutButton: {
     padding: 8,
